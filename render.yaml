@@ -6,3 +6,7 @@ services:
     branch: main
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:10000
+envVars:
+  - key: REDIS_URL
+    value: redis://red-d08eujp5pdvs739o9tq0:6379/0
+
