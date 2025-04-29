@@ -90,9 +90,3 @@ class VideoChatConsumer(AsyncWebsocketConsumer):
                 "type": "signal",
                 "data": event["data"]
             }))
-
-            # Har yangi ulanishda foydalanuvchi sonini jo‘natish
-            # async def notify_users_count():
-            #     count = len(CONNECTED_USERS)
-            #     message = json.dumps({"type": "users", "count": count})
-            #     await asyncio.gather(*(ws.send(message) for ws in CONNECTED_USERS))
