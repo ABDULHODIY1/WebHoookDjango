@@ -2,7 +2,7 @@ import json
 import hashlib
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from aioredis import Redis
+from redis.asyncio import Redis
 
 REDIS_URL = "redis://red-d08eujp5pdvs739o9tq0:6379/0"
 WAITING_LIST = "video_waiting_list"
