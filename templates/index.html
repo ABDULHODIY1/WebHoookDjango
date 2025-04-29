@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Video Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .video-container {
+      display: flex;
+      width: 100%;
+      max-width: 900px;
+      justify-content: space-between;
+      margin: 20px 0;
+    }
+    video {
+      width: 48%;
+      background: #000;
+      border-radius: 8px;
+    }
+    .controls {
+      margin: 10px 0;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+    }
+    #status {
+      margin: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .connecting { background: #FFF3CD; color: #856404; }
+    .connected { background: #D4EDDA; color: #155724; }
+    .error { background: #F8D7DA; color: #721C24; }
+  </style>
+</head>
+<body>
+  <h1>Random Video Chat</h1>
+  <div id="status" class="connecting">WebSocketga ulanyapman...</div>
+  <div id="users">Foydalanuvchilar: 0</div>
+
+  <div class="video-container">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+  </div>
+
+  <div class="controls">
+    <button onclick="toggleCamera()">Kamerani yoq/o'chir</button>
+    <button onclick="toggleMic()">Mikrofoni yoq/o'chir</button>
+    <button onclick="startChat()">Start Chat</button>
+    <button onclick="nextChat()">Next Chat</button>
+  </div>
+
+  <script>
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const statusDiv = document.getElementById('status');
+    const usersDiv = document.getElementById('users');
+
+    let pc = null;
+    let ws = null;
+    let localStream = null;
+    let role = null;
+    let room = null;
+    let camEnabled = true;
+    let micEnabled = true;
+
+    function toggleCamera() {
+      camEnabled = !camEnabled;
+      localStream.getVideoTracks().forEach(track => track.enabled = camEnabled);
+    }
+
+    function toggleMic() {
+      micEnabled = !micEnabled;
+      localStream.getAudioTracks().forEach(track => track.enabled = micEnabled);
+    }
+
+    function startChat() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'join' }));
+      }
+    }
+
+    function nextChat() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'next' }));
+      }
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      remoteVideo.srcObject = null;
+      statusDiv.textContent = 'Yangi sherik qidirilmoqda...';
+      statusDiv.className = 'connecting';
+    }
+
+    function initWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      ws = new WebSocket(protocol + window.location.host + '/ws/video/');
+
+      ws.onopen = () => {
+        statusDiv.textContent = 'WebSocketga ulandi. "Start Chat" tugmasini bosing.';
+        statusDiv.className = 'connecting';
+      };
+
+      ws.onclose = () => {
+        statusDiv.textContent = 'WebSocket uzildi. Qayta ulanmoqda...';
+        statusDiv.className = 'error';
+        setTimeout(initWebSocket, 3000);
+      };
+
+      ws.onerror = () => {
+        statusDiv.textContent = 'WebSocket xatosi.';
+        statusDiv.className = 'error';
+      };
+
+      ws.onmessage = async (event) => {
+        const msg = JSON.parse(event.data);
+        console.log('Xabar:', msg);
+
+        if (msg.type === 'users') {
+          usersDiv.textContent = `Foydalanuvchilar: ${msg.count}`;
+        }
+        else if (msg.type === 'paired') {
+          role = msg.role;
+          room = msg.room;
+          statusDiv.textContent = `Sherik topildi! (${role})`;
+          statusDiv.className = 'connected';
+          await startWebRTC();
+        }
+        else if (msg.type === 'signal') {
+          await handleSignal(msg.data);
+        }
+      };
+    }
+
+    async function startWebRTC() {
+      pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' }
+        ]
+      });
+
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = localStream;
+
+      localStream.getTracks().forEach(track => {
+        pc.addTrack(track, localStream);
+      });
+
+      pc.onicecandidate = ({ candidate }) => {
+        if (candidate) {
+          ws.send(JSON.stringify({
+            type: 'signal',
+            data: { type: 'candidate', candidate: candidate.toJSON(), room }
+          }));
+        }
+      };
+
+      pc.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+
+      if (role === 'caller') {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        ws.send(JSON.stringify({
+          type: 'signal',
+          data: { type: 'offer', sdp: offer, room }
+        }));
+      }
+    }
+
+    async function handleSignal(data) {
+      if (!pc) return;
+
+      if (data.type === 'offer' && role === 'callee') {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        ws.send(JSON.stringify({
+          type: 'signal',
+          data: { type: 'answer', sdp: answer, room }
+        }));
+      }
+      else if (data.type === 'answer' && role === 'caller') {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      }
+      else if (data.type === 'candidate') {
+        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      }
+    }
+
+    window.addEventListener('load', () => {
+      initWebSocket();
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (ws) ws.close();
+      if (pc) pc.close();
+      if (localStream) localStream.getTracks().forEach(track => track.stop());
+    });
+  </script>
+</body>
+</html>

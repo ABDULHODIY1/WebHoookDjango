@@ -1,0 +1,5 @@
+# Daphne bilan
+daphne -p 8000 randomchat.asgi:application
+
+# Yoki Uvicorn bilan
+uvicorn randomchat.asgi:application --reload --port 8000
