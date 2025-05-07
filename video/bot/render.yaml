@@ -9,6 +9,6 @@ services:
       - key: BOT_TOKEN
         value: 8006332215:AAH-xXrm8fmPBEC9GcdWiVErnt3Fr1TL_DU
     plan: free
-    region: singapore
+    region: singaporea
     autoDeploy: true
     healthCheckPath: /health
