@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: telegram-video-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    env: python
+    envVars:
+      - key: BOT_TOKEN
+        value: 8006332215:AAH-xXrm8fmPBEC9GcdWiVErnt3Fr1TL_DU
+    plan: free
+    region: singapore
+    autoDeploy: true
+    healthCheckPath: /health

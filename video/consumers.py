@@ -19,11 +19,9 @@ class VideoChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
         self.redis = await Redis.from_url(REDIS_URL)
 
-        # Add to waiting list
         await self.redis.rpush(WAITING_LIST, self.channel_name)
         print(f"User {self.channel_name} added to waiting list")
 
-        # Check for pairs
         await self.check_for_pairs()
 
     async def check_for_pairs(self):
@@ -35,14 +33,11 @@ class VideoChatConsumer(AsyncWebsocketConsumer):
             peer1 = peer1.decode()
             peer2 = peer2.decode()
 
-            # Create room name
             room_name = f"room_{hashlib.sha256((peer1 + peer2).encode()).hexdigest()[:10]}"
 
-            # Add to group
             await self.channel_layer.group_add(room_name, peer1)
             await self.channel_layer.group_add(room_name, peer2)
 
-            # Send pairing info
             await self.channel_layer.send(peer1, {
                 "type": "pairing.info",
                 "room": room_name,
@@ -84,7 +79,6 @@ class VideoChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def signal_message(self, event):
-        # Don't send the signal back to the sender
         if event["sender_channel"] != self.channel_name:
             await self.send(text_data=json.dumps({
                 "type": "signal",
