@@ -1,6 +1,6 @@
-from .views import *
 from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('',index,name = 'videochat'),
+    path('', views.video_chat, name='video_chat'),
 ]

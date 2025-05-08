@@ -14,7 +14,7 @@ async def start_handler(message: types.Message):
     keyboard = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             text="🎥 Random Video Chat",
-            web_app=WebAppInfo(url="https://randomvideochat.onrender.com")
+            web_app=WebAppInfo(url="https://webhoookdjango0.onrender.com")
         )
     )
     await message.answer("🎬 Chatni boshlash uchun quyidagi tugmani bosing:", reply_markup=keyboard)

@@ -122,13 +122,40 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 INSTALLED_APPS += ["channels", "video"]
 ASGI_APPLICATION = "randomchat.asgi.application"
 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [os.getenv('REDIS_URL', 'redis://red-d08eujp5pdvs739o9tq0:6379')],
+#         },
+#     },
+# }
+
+# Channels sozlamalari
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.getenv('REDIS_URL', 'redis://red-d08eujp5pdvs739o9tq0:6379')],
-        },
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        # Ishlab chiqish uchun InMemory ishlatamiz, productionda Redis ishlating
+        # "BACKEND": "channels_redis.core.RedisChannelLayer",
+        # "CONFIG": {
+        #     "hosts": [("localhost", 6379)],
+        # },
     },
+}
+
+# WebRTC uchun kerak bo'ladigan sozlamalar
+WEBRTC_CONFIG = {
+    "ICE_SERVERS": [
+        {"urls": "stun:stun.l.google.com:19302"},
+        {"urls": "stun:stun1.l.google.com:19302"},
+        {"urls": "stun:stun2.l.google.com:19302"},
+        # Agar TURN server bo'lsa:
+        # {
+        #     "urls": "turn:your.turn.server.com",
+        #     "username": "username",
+        #     "credential": "password"
+        # }
+    ]
 }
 
 # Default primary key field type
