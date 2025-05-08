@@ -4,115 +4,155 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Random Video Chat</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons @1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons @1.10.5/font/bootstrap-icons.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; height: 100vh; background: #000; color: white; overflow: hidden; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    /* Yangi CSS o'zgartirishlar */
-    .video-container {
-      flex-direction: column; /* Ustun ko'rinish */
-      position: relative;
+    body {
+      font-family: 'Arial', sans-serif;
       height: 100vh;
+      background: #000;
+      color: white;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .video-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
 
     video {
-      width: 100%; /* To'liq eni */
-      height: 50vh; /* Ekran balandligining yarmi */
+      width: 100%;
+      height: 50vh;
       object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     #localVideo {
-      transform: scaleX(-1); /* O'zimizning kameramiz aks ettirilgan */
+      transform: scaleX(-1);
+      position: relative;
+      z-index: 1;
     }
 
     .controls-overlay {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      right: 0;
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
-      justify-content: center;
-      gap: 15px;
-      z-index: 100;
+      gap: 20px;
+      z-index: 99999;
+      padding: 15px 25px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 50px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
     }
 
     .control-btn {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 50%;
-      background: rgba(30, 30, 30, 0.7);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
       cursor: pointer;
       transition: all 0.3s;
-      backdrop-filter: blur(5px);
     }
 
-    .control-btn:active { transform: scale(0.95); }
-    .control-btn.active { background: #4285f4; border-color: #4285f4; }
-    .control-btn.danger { background: rgba(255, 50, 50, 0.7); }
-    .control-btn.danger.active { background: #ff3333; border-color: #ff3333; }
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .control-btn.active {
+      background: #4CAF50;
+    }
+
+    .control-btn.danger {
+      background: #f44336;
+    }
 
     .status-bar {
-      position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      z-index: 100;
-      padding: 8px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 20px;
-      margin: 0 20px;
-      backdrop-filter: blur(5px);
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 30px;
+      backdrop-filter: blur(10px);
+      z-index: 99998;
     }
 
-    #status { font-size: 14px; }
-    .connecting { color: #ffcc00; }
-    .connected { color: #4CAF50; }
-    .error { color: #f44336; }
-    #users { font-size: 12px; margin-top: 5px; opacity: 0.8; }
-    .fullscreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
-    .hidden { display: none; }
+    #status {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    #users {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .fullscreen-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 999999;
+      object-fit: contain;
+    }
+
+    @media (max-width: 600px) {
+      .control-btn {
+        width: 50px;
+        height: 50px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="video-container">
-    <!-- Video tartibi o'zgartirildi -->
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay muted playsinline></video>
+  </div>
 
-    <div class="status-bar">
-      <div id="status" class="connecting">Ulanish...</div>
-      <div id="users">Foydalanuvchilar: 0</div>
+  <div class="status-bar">
+    <div id="status" class="connecting">Ulanish...</div>
+    <div id="users">0 ta foydalanuvchi</div>
+  </div>
+
+  <div class="controls-overlay">
+    <div class="control-btn active" onclick="toggleCamera()" id="cameraBtn">
+      <i class="bi bi-camera-video-fill" style="font-size: 24px;"></i>
     </div>
-
-    <div class="controls-overlay">
-      <div class="control-btn active" onclick="toggleCamera()" id="cameraBtn">
-        <i class="bi bi-camera-video-fill"></i>
-      </div>
-      <div class="control-btn active" onclick="toggleMic()" id="micBtn">
-        <i class="bi bi-mic-fill"></i>
-      </div>
-      <div class="control-btn" onclick="startChat()" id="startBtn">
-        <i class="bi bi-person-plus-fill"></i>
-      </div>
-      <div class="control-btn danger" onclick="nextChat()" id="nextBtn">
-        <i class="bi bi-skip-forward-fill"></i>
-      </div>
-      <div class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn">
-        <i class="bi bi-fullscreen"></i>
-      </div>
+    <div class="control-btn active" onclick="toggleMic()" id="micBtn">
+      <i class="bi bi-mic-fill" style="font-size: 24px;"></i>
+    </div>
+    <div class="control-btn" onclick="startChat()" id="startBtn">
+      <i class="bi bi-person-plus-fill" style="font-size: 28px;"></i>
+    </div>
+    <div class="control-btn danger" onclick="nextChat()" id="nextBtn">
+      <i class="bi bi-arrow-repeat" style="font-size: 24px;"></i>
+    </div>
+    <div class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn">
+      <i class="bi bi-fullscreen" style="font-size: 24px;"></i>
     </div>
   </div>
 
   <script>
-    // DOM elementlari
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
     const statusDiv = document.getElementById('status');
@@ -123,280 +163,165 @@
     const nextBtn = document.getElementById('nextBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-    // Global o'zgaruvchilar
     let pc = null;
     let ws = null;
     let localStream = null;
-    let role = null;
-    let room = null;
-    let peerId = null;
-    let camEnabled = true;
-    let micEnabled = true;
     let isFullscreen = false;
-    let currentVideo = null;
+    let currentFullscreenVideo = null;
 
-    // Kamera va mikrofonni boshqarish
-    async function toggleCamera() {
-      if (!localStream) return;
-      camEnabled = !camEnabled;
-      localStream.getVideoTracks().forEach(track => track.enabled = camEnabled);
-      cameraBtn.classList.toggle('active', camEnabled);
-      cameraBtn.innerHTML = camEnabled ? '<i class="bi bi-camera-video-fill"></i>' : '<i class="bi bi-camera-video-off-fill"></i>';
-    }
-
-    async function toggleMic() {
-      if (!localStream) return;
-      micEnabled = !micEnabled;
-      localStream.getAudioTracks().forEach(track => track.enabled = micEnabled);
-      micBtn.classList.toggle('active', micEnabled);
-      micBtn.innerHTML = micEnabled ? '<i class="bi bi-mic-fill"></i>' : '<i class="bi bi-mic-mute-fill"></i>';
-    }
-
-    // Chatni boshlash va keyingi chat
-    function startChat() {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'join' }));
-        statusDiv.textContent = 'Sherik qidirilmoqda...';
-        statusDiv.className = 'connecting';
-        startBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
-        startBtn.classList.add('active');
-      }
-    }
-
-    function nextChat() {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'next' }));
-      }
-      resetConnection();
-      statusDiv.textContent = 'Yangi sherik qidirilmoqda...';
-      statusDiv.className = 'connecting';
-      startBtn.innerHTML = '<i class="bi bi-person-plus-fill"></i>';
-      startBtn.classList.remove('active');
-    }
-
-    function resetConnection() {
-      if (pc) {
-        pc.close();
-        pc = null;
-      }
-      if (remoteVideo.srcObject) {
-        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-        remoteVideo.srcObject = null;
-      }
-      role = null;
-      room = null;
-      peerId = null;
-    }
-
-    // WebSocket ulanishi
-    function initWebSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-      const host = window.location.hostname;
-      const port = window.location.port ? `:${window.location.port}` : '';
-      const wsUrl = `${protocol}${host}${port}/ws/video/`;
+    async function initWebSocket() {
+      const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') +
+                    window.location.host +
+                    '/ws/video/';
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        statusDiv.textContent = 'Tayyor. Start tugmasini bosing';
-        statusDiv.className = 'connecting';
-        console.log('WebSocket connected');
-      };
-
-      ws.onclose = () => {
-        statusDiv.textContent = 'Ulanmadi. Qayta ulanmoqda...';
-        statusDiv.className = 'error';
-        console.log('WebSocket disconnected, reconnecting...');
-        setTimeout(initWebSocket, 3000);
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        statusDiv.textContent = 'Xatolik yuz berdi';
-        statusDiv.className = 'error';
+        statusDiv.textContent = 'Tayyor!';
+        statusDiv.className = 'connected';
       };
 
       ws.onmessage = async (event) => {
-        try {
-          const msg = JSON.parse(event.data);
-          console.log('Received message:', msg);
-          if (msg.type === 'users') {
-            usersDiv.textContent = `Foydalanuvchilar: ${msg.count}`;
-          }
-          else if (msg.type === 'paired') {
-            role = msg.role;
-            room = msg.room;
-            peerId = msg.peer_id;
-            statusDiv.textContent = `Ulangan! (${role})`;
-            statusDiv.className = 'connected';
-            startBtn.innerHTML = '<i class="bi bi-person-check-fill"></i>';
-            await startWebRTC();
-          }
-          else if (msg.type === 'signal') {
-            await handleSignal(msg.data);
-          }
-          else if (msg.type === 'connection') {
-            statusDiv.textContent = msg.message;
-            statusDiv.className = 'error';
-            nextChat();
-          }
-          else if (msg.type === 'next') {
-            resetConnection();
-            statusDiv.textContent = msg.message;
-            statusDiv.className = 'connecting';
-          }
-        } catch (err) {
-          console.error('Error processing message:', err);
+        const msg = JSON.parse(event.data);
+
+        if (msg.type === 'users') {
+          usersDiv.textContent = `${msg.count} ta foydalanuvchi`;
         }
+
+        if (msg.type === 'paired') {
+          await createPeerConnection(msg.role, msg.room);
+        }
+
+        if (msg.type === 'signal') {
+          await handleSignal(msg.data);
+        }
+      };
+
+      ws.onerror = (error) => {
+        statusDiv.textContent = 'Xatolik!';
+        statusDiv.className = 'error';
+        console.error('WebSocket Error:', error);
       };
     }
 
-    // WebRTC ulanishi
-    async function startWebRTC() {
-      try {
-        pc = new RTCPeerConnection({
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
-          ]
-        });
+    async function createPeerConnection(role, room) {
+      pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun.cloudflare.com:3478' }
+        ]
+      });
 
-        pc.onicecandidate = ({ candidate }) => {
-          if (candidate) {
-            ws.send(JSON.stringify({
-              type: 'signal',
-              data: { type: 'candidate', candidate: candidate.toJSON(), room }
-            }));
-            console.log('ICE candidate sent:', candidate);
-          }
-        };
-
-        pc.ontrack = (event) => {
-          if (!remoteVideo.srcObject) {
-            remoteVideo.srcObject = event.streams[0];
-            console.log('Remote stream received');
-          }
-        };
-
-        pc.onconnectionstatechange = () => {
-          console.log('Connection state:', pc.connectionState);
-          if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-            statusDiv.textContent = 'Ulanish uzildi';
-            statusDiv.className = 'error';
-            nextChat();
-          }
-        };
-
-        pc.oniceconnectionstatechange = () => {
-          console.log('ICE connection state:', pc.iceConnectionState);
-          if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
-            statusDiv.textContent = 'Ulanish uzildi';
-            statusDiv.className = 'error';
-            nextChat();
-          }
-        };
-
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: 1280, height: 720 },
-          audio: true
-        });
-        localVideo.srcObject = localStream;
-
-        localStream.getTracks().forEach(track => {
-          pc.addTrack(track, localStream);
-        });
-
-        if (role === 'caller') {
-          const offer = await pc.createOffer({
-            offerToReceiveAudio: true,
-            offerToReceiveVideo: true
-          });
-          await pc.setLocalDescription(offer);
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
           ws.send(JSON.stringify({
             type: 'signal',
-            data: { type: 'offer', sdp: offer.sdp, room }
+            data: { type: 'candidate', candidate: event.candidate }
           }));
-          console.log('Offer created and sent');
         }
-      } catch (err) {
-        console.error('WebRTC error:', err);
-        statusDiv.textContent = 'Kamera/mikrofon ruxsati kerak';
-        statusDiv.className = 'error';
-        nextChat();
+      };
+
+      pc.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      if (role === 'caller') {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        ws.send(JSON.stringify({
+          type: 'signal',
+          data: { type: 'offer', sdp: offer.sdp }
+        }));
       }
     }
 
     async function handleSignal(data) {
-      if (!pc) return;
       try {
-        console.log('Processing signal:', data.type);
-        if (data.type === 'offer' && role === 'callee') {
-          await pc.setRemoteDescription(new RTCSessionDescription({
-            type: 'offer',
-            sdp: data.sdp
-          }));
+        if (data.type === 'offer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(data));
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           ws.send(JSON.stringify({
             type: 'signal',
-            data: { type: 'answer', sdp: answer.sdp, room }
+            data: { type: 'answer', sdp: answer.sdp }
           }));
-          console.log('Answer created and sent');
         }
-        else if (data.type === 'answer' && role === 'caller') {
-          await pc.setRemoteDescription(new RTCSessionDescription({
-            type: 'answer',
-            sdp: data.sdp
-          }));
-          console.log('Answer received and set');
+
+        if (data.type === 'answer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(data));
         }
-        else if (data.type === 'candidate') {
+
+        if (data.type === 'candidate') {
           await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-          console.log('ICE candidate added');
         }
-      } catch (err) {
-        console.error('Signal processing error:', err);
+      } catch (error) {
+        console.error('Signaling Error:', error);
       }
     }
 
-    // To'liq ekran rejimi
-    function toggleFullscreen() {
-      if (!isFullscreen) {
-        if (remoteVideo.srcObject) {
-          remoteVideo.classList.add('fullscreen');
-          currentVideo = remoteVideo;
-        } else {
-          localVideo.classList.add('fullscreen');
-          currentVideo = localVideo;
+    async function startChat() {
+      if (!localStream) {
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          });
+          localVideo.srcObject = localStream;
+          startBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+          ws.send(JSON.stringify({ type: 'join' }));
+        } catch (error) {
+          alert('Kamera/mikrofon ruxsati kerak!');
         }
-        isFullscreen = true;
-        fullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
       } else {
-        currentVideo.classList.remove('fullscreen');
-        isFullscreen = false;
-        fullscreenBtn.innerHTML = '<i class="bi bi-fullscreen"></i>';
+        ws.send(JSON.stringify({ type: 'join' }));
       }
     }
 
-    // Sahifa yuklanganda
+    function nextChat() {
+      if (pc) pc.close();
+      remoteVideo.srcObject = null;
+      ws.send(JSON.stringify({ type: 'next' }));
+      startBtn.innerHTML = '<i class="bi bi-person-plus-fill"></i>';
+      statusDiv.textContent = 'Yangi sherik qidirilmoqda...';
+    }
+
+    async function toggleCamera() {
+      const enabled = localStream.getVideoTracks()[0].enabled;
+      localStream.getVideoTracks().forEach(track => track.enabled = !enabled);
+      cameraBtn.classList.toggle('active', !enabled);
+    }
+
+    async function toggleMic() {
+      const enabled = localStream.getAudioTracks()[0].enabled;
+      localStream.getAudioTracks().forEach(track => track.enabled = !enabled);
+      micBtn.classList.toggle('active', !enabled);
+    }
+
+    function toggleFullscreen() {
+      const video = remoteVideo.srcObject ? remoteVideo : localVideo;
+      if (!document.fullscreenElement) {
+        video.requestFullscreen().then(() => {
+          currentFullscreenVideo = video;
+          isFullscreen = true;
+          fullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+        });
+      } else {
+        document.exitFullscreen().then(() => {
+          currentFullscreenVideo = null;
+          isFullscreen = false;
+          fullscreenBtn.innerHTML = '<i class="bi bi-fullscreen"></i>';
+        });
+      }
+    }
+
     window.addEventListener('load', () => {
       initWebSocket();
       window.addEventListener('beforeunload', () => {
-        if (ws) ws.close();
         if (pc) pc.close();
         if (localStream) localStream.getTracks().forEach(track => track.stop());
       });
     });
-
-    // Telegram WebApp integrasiyasi
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.expand();
-      tg.enableClosingConfirmation();
-      tg.onEvent('viewportChanged', () => {
-        tg.expand();
-      });
-    }
   </script>
 </body>
 </html>
