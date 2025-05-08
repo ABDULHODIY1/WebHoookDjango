@@ -131,17 +131,24 @@ ASGI_APPLICATION = "randomchat.asgi.application"
 #     },
 # }
 
-# Channels sozlamalari
+import os
+import urllib.parse
+
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+parsed_url = urllib.parse.urlparse(redis_url)
+
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-        # Ishlab chiqish uchun InMemory ishlatamiz, productionda Redis ishlating
-        # "BACKEND": "channels_redis.core.RedisChannelLayer",
-        # "CONFIG": {
-        #     "hosts": [("localhost", 6379)],
-        # },
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(
+                parsed_url.hostname,
+                parsed_url.port
+            )],
+        },
     },
 }
+
 
 # WebRTC uchun kerak bo'ladigan sozlamalar
 WEBRTC_CONFIG = {
