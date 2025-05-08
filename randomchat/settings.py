@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-k%jl+oz3lwsnchn)#*jz-8=)@^cgn)09s_dky)cf2jfr%)gptl'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
+CORS_ORIGIN_ALLOW = True
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -131,16 +131,17 @@ ASGI_APPLICATION = "randomchat.asgi.application"
 #     },
 # }
 
+# Channels sozlamalari
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("red-d08eujp5pdvs739o9tq0", 6379)],
-        },
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        # Ishlab chiqish uchun InMemory ishlatamiz, productionda Redis ishlating
+        # "BACKEND": "channels_redis.core.RedisChannelLayer",
+        # "CONFIG": {
+        #     "hosts": [("localhost", 6379)],
+        # },
     },
 }
-
-
 
 # WebRTC uchun kerak bo'ladigan sozlamalar
 WEBRTC_CONFIG = {
@@ -148,6 +149,12 @@ WEBRTC_CONFIG = {
         {"urls": "stun:stun.l.google.com:19302"},
         {"urls": "stun:stun1.l.google.com:19302"},
         {"urls": "stun:stun2.l.google.com:19302"},
+        # Agar TURN server bo'lsa:
+        # {
+        #     "urls": "turn:your.turn.server.com",
+        #     "username": "username",
+        #     "credential": "password"
+        # }
     ]
 }
 
