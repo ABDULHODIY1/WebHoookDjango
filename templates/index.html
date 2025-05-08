@@ -4,20 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Random Video Chat</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons @1.10.0/font/bootstrap-icons.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; height: 100vh; background: #000; color: white; overflow: hidden; }
-    .video-container { display: flex; height: 100vh; position: relative; }
-    video { width: 50%; height: 100%; object-fit: cover; }
-    #localVideo { transform: scaleX(-1); }
-    .controls-overlay { position: absolute; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; z-index: 100; }
-    .control-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(30, 30, 30, 0.7); border: 2px solid rgba(255, 255, 255, 0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px); }
+
+    /* Yangi CSS o'zgartirishlar */
+    .video-container {
+      flex-direction: column; /* Ustun ko'rinish */
+      position: relative;
+      height: 100vh;
+    }
+
+    video {
+      width: 100%; /* To'liq eni */
+      height: 50vh; /* Ekran balandligining yarmi */
+      object-fit: cover;
+    }
+
+    #localVideo {
+      transform: scaleX(-1); /* O'zimizning kameramiz aks ettirilgan */
+    }
+
+    .controls-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      z-index: 100;
+    }
+
+    .control-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(30, 30, 30, 0.7);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(5px);
+    }
+
     .control-btn:active { transform: scale(0.95); }
     .control-btn.active { background: #4285f4; border-color: #4285f4; }
     .control-btn.danger { background: rgba(255, 50, 50, 0.7); }
     .control-btn.danger.active { background: #ff3333; border-color: #ff3333; }
-    .status-bar { position: absolute; top: 10px; left: 0; right: 0; text-align: center; z-index: 100; padding: 8px; background: rgba(0, 0, 0, 0.5); border-radius: 20px; margin: 0 20px; backdrop-filter: blur(5px); }
+
+    .status-bar {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 100;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      margin: 0 20px;
+      backdrop-filter: blur(5px);
+    }
+
     #status { font-size: 14px; }
     .connecting { color: #ffcc00; }
     .connected { color: #4CAF50; }
@@ -29,8 +83,9 @@
 </head>
 <body>
   <div class="video-container">
-    <video id="localVideo" autoplay muted playsinline></video>
+    <!-- Video tartibi o'zgartirildi -->
     <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay muted playsinline></video>
 
     <div class="status-bar">
       <div id="status" class="connecting">Ulanish...</div>
@@ -139,7 +194,6 @@
       const host = window.location.hostname;
       const port = window.location.port ? `:${window.location.port}` : '';
       const wsUrl = `${protocol}${host}${port}/ws/video/`;
-
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -165,7 +219,6 @@
         try {
           const msg = JSON.parse(event.data);
           console.log('Received message:', msg);
-
           if (msg.type === 'users') {
             usersDiv.textContent = `Foydalanuvchilar: ${msg.count}`;
           }
@@ -208,7 +261,6 @@
           ]
         });
 
-        // ICE nomzodlari
         pc.onicecandidate = ({ candidate }) => {
           if (candidate) {
             ws.send(JSON.stringify({
@@ -219,7 +271,6 @@
           }
         };
 
-        // Uzoq video oqimi
         pc.ontrack = (event) => {
           if (!remoteVideo.srcObject) {
             remoteVideo.srcObject = event.streams[0];
@@ -227,7 +278,6 @@
           }
         };
 
-        // Ulanish holati
         pc.onconnectionstatechange = () => {
           console.log('Connection state:', pc.connectionState);
           if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
@@ -237,7 +287,6 @@
           }
         };
 
-        // ICE ulanish holati
         pc.oniceconnectionstatechange = () => {
           console.log('ICE connection state:', pc.iceConnectionState);
           if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
@@ -247,26 +296,22 @@
           }
         };
 
-        // Local media oqimini olish
         localStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: 1280, height: 720 },
           audio: true
         });
         localVideo.srcObject = localStream;
 
-        // Media treklarni qo'shish
         localStream.getTracks().forEach(track => {
           pc.addTrack(track, localStream);
         });
 
-        // Offer yaratish (caller uchun)
         if (role === 'caller') {
           const offer = await pc.createOffer({
             offerToReceiveAudio: true,
             offerToReceiveVideo: true
           });
           await pc.setLocalDescription(offer);
-
           ws.send(JSON.stringify({
             type: 'signal',
             data: { type: 'offer', sdp: offer.sdp, room }
@@ -281,22 +326,17 @@
       }
     }
 
-    // Signalizatsiya xabarlarini qayta ishlash
     async function handleSignal(data) {
       if (!pc) return;
-
       try {
         console.log('Processing signal:', data.type);
-
         if (data.type === 'offer' && role === 'callee') {
           await pc.setRemoteDescription(new RTCSessionDescription({
             type: 'offer',
             sdp: data.sdp
           }));
-
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
-
           ws.send(JSON.stringify({
             type: 'signal',
             data: { type: 'answer', sdp: answer.sdp, room }
@@ -341,8 +381,6 @@
     // Sahifa yuklanganda
     window.addEventListener('load', () => {
       initWebSocket();
-
-      // Sahifadan chiqishda resurslarni tozalash
       window.addEventListener('beforeunload', () => {
         if (ws) ws.close();
         if (pc) pc.close();
@@ -355,7 +393,6 @@
       const tg = window.Telegram.WebApp;
       tg.expand();
       tg.enableClosingConfirmation();
-
       tg.onEvent('viewportChanged', () => {
         tg.expand();
       });
