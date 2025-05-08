@@ -1,11 +1,10 @@
 from django.shortcuts import render
-
 import json
 import asyncio
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from aiogram import types
-from .bot.main import dp, bot  # Bot va dispatcher import qilinadi
+from .bot.main import dp, bot
 
 
 @csrf_exempt
@@ -19,5 +18,4 @@ def index(request):
         except Exception as e:
             return HttpResponse(f"Xatolik: {e}", status=400)
 
-    # GET bo‘lsa, oddiy HTML ko‘rsatamiz
     return render(request, "index.html")
