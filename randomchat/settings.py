@@ -134,7 +134,7 @@ ASGI_APPLICATION = "randomchat.asgi.application"
 import os
 import urllib.parse
 
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+redis_url = os.getenv("REDIS_URL", "redis://red-d08eujp5pdvs739o9tq0:6379")
 parsed_url = urllib.parse.urlparse(redis_url)
 
 CHANNEL_LAYERS = {
