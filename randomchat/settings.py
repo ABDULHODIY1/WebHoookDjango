@@ -131,23 +131,15 @@ ASGI_APPLICATION = "randomchat.asgi.application"
 #     },
 # }
 
-import os
-import urllib.parse
-
-redis_url = os.getenv("REDIS_URL", "redis://red-d08eujp5pdvs739o9tq0:6379")
-parsed_url = urllib.parse.urlparse(redis_url)
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(
-                parsed_url.hostname,
-                parsed_url.port
-            )],
+            "hosts": [("red-d08eujp5pdvs739o9tq0", 6379)],
         },
     },
 }
+
 
 
 # WebRTC uchun kerak bo'ladigan sozlamalar
@@ -156,12 +148,6 @@ WEBRTC_CONFIG = {
         {"urls": "stun:stun.l.google.com:19302"},
         {"urls": "stun:stun1.l.google.com:19302"},
         {"urls": "stun:stun2.l.google.com:19302"},
-        # Agar TURN server bo'lsa:
-        # {
-        #     "urls": "turn:your.turn.server.com",
-        #     "username": "username",
-        #     "credential": "password"
-        # }
     ]
 }
 
